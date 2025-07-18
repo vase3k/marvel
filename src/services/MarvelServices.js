@@ -26,6 +26,13 @@ class MarvelService {
     };
 
     _transformCharacter = char => {
+        if (
+            char.thumbnail.path ===
+            'https://www.wallpaperflare.com/static/264/707/824/iron-man-the-avengers-robert-downey-junior-tony-wallpaper'
+        ) {
+            char.thumbnail.path =
+                'https://i.pinimg.com/736x/d7/09/a0/d709a0e9416d99e7b1487b714f81d368';
+        }
         return {
             name: char.name,
             description: char.description
