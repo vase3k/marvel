@@ -10,7 +10,8 @@ class CharList extends Component {
         loading: true,
         error: false,
         newItemLoading: false,
-        offset: 9,
+        offset: -3,
+        charEnded: false,
     };
 
     marvel = new MarvelService();
@@ -31,12 +32,24 @@ class CharList extends Component {
     };
 
     onCharListLoaded = newData => {
-        this.setState(({ data, offset }) => ({
-            data: [...data, ...newData],
-            loading: false,
-            newItemLoading: false,
-            offset: offset + 3,
-        }));
+        let ended = false;
+        if (newData.length === 0) {
+            ended = true;
+        }
+
+        this.setState(({ data, offset }) => {
+            const filteredNewData = newData.filter(
+                newItem => !data.some(existingItem => existingItem.id === newItem.id)
+            );
+
+            return {
+                data: [...data, ...filteredNewData],
+                loading: false,
+                newItemLoading: false,
+                offset: offset + 3,
+                charEnded: ended,
+            };
+        });
     };
 
     onError = () => {
@@ -64,7 +77,7 @@ class CharList extends Component {
     }
 
     render() {
-        const { data, loading, error, newItemLoading, offset } = this.state;
+        const { data, loading, error, newItemLoading, offset, charEnded } = this.state;
         const items = this.renderItems(data);
 
         const errorMessage = error ? <ErrorMessage /> : null;
@@ -79,6 +92,7 @@ class CharList extends Component {
                 <button
                     className="button button__main button__long"
                     disabled={newItemLoading}
+                    style={{ display: charEnded ? 'none' : '' }}
                     onClick={() => this.onRequest(offset)}
                 >
                     <div className="inner">load more</div>
