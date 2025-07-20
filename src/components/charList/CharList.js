@@ -1,32 +1,42 @@
 import { Component } from 'react';
 import MarvelService from '../../services/MarvelServices';
-import nextId from 'react-id-generator';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import './charList.scss';
 
 class CharList extends Component {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            data: [],
-            loading: true,
-            error: false,
-        };
-    }
+    state = {
+        data: [],
+        loading: true,
+        error: false,
+        newItemLoading: false,
+        offset: 9,
+    };
 
     marvel = new MarvelService();
 
     componentDidMount() {
-        this.marvel.getAllCharacters().then(this.onCharListLoaded).catch(this.onError);
+        this.onRequest();
     }
 
-    onCharListLoaded = data => {
+    onRequest = offset => {
+        this.onCharListLoading();
+        this.marvel.getAllCharacters(offset).then(this.onCharListLoaded).catch(this.onError);
+    };
+
+    onCharListLoading = () => {
         this.setState({
-            data,
-            loading: false,
+            newItemLoading: true,
         });
+    };
+
+    onCharListLoaded = newData => {
+        this.setState(({ data, offset }) => ({
+            data: [...data, ...newData],
+            loading: false,
+            newItemLoading: false,
+            offset: offset + 3,
+        }));
     };
 
     onError = () => {
@@ -38,9 +48,12 @@ class CharList extends Component {
 
     renderItems(arr) {
         const items = arr.map(item => {
-            const id = nextId();
             return (
-                <li className="char__item" key={id}>
+                <li
+                    className="char__item"
+                    key={item.id}
+                    onClick={() => this.props.onCharSelected(item.id)}
+                >
                     <img src={item.thumbnail} alt={item.name} />
                     <div className="char__name">{item.name}</div>
                 </li>
@@ -51,8 +64,8 @@ class CharList extends Component {
     }
 
     render() {
-        const { data, loading, error } = this.state;
-        const items = this.renderItems(data.slice(0, 9));
+        const { data, loading, error, newItemLoading, offset } = this.state;
+        const items = this.renderItems(data);
 
         const errorMessage = error ? <ErrorMessage /> : null;
         const spinner = loading ? <Spinner /> : null;
@@ -63,7 +76,11 @@ class CharList extends Component {
                 {errorMessage}
                 {spinner}
                 {content}
-                <button className="button button__main button__long">
+                <button
+                    className="button button__main button__long"
+                    disabled={newItemLoading}
+                    onClick={() => this.onRequest(offset)}
+                >
                     <div className="inner">load more</div>
                 </button>
             </div>
