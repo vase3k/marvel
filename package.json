@@ -37,5 +37,6 @@
   "devDependencies": {
     "react-id-generator": "^3.0.2",
     "sass": "^1.89.2"
-  }
+  },
+  "homepage": "."
 }
