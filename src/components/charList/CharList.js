@@ -1,31 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 
-import MarvelService from '../../services/MarvelServices';
+import useMarvelService from '../../services/MarvelServices';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import './charList.scss';
 
 const CharList = props => {
     const [data, setData] = useState([]),
-        [loading, setLoading] = useState(true),
-        [error, setError] = useState(false),
         [newItemLoading, setNewItemLoading] = useState(false),
         [offset, setOffset] = useState(-3),
         [charEnded, setCharEnded] = useState(false);
 
-    const marvel = new MarvelService();
+    const { loading, error, getAllCharacters } = useMarvelService();
 
     useEffect(() => {
         onRequest();
     }, []);
 
     const onRequest = offset => {
-        onCharListLoading();
-        marvel.getAllCharacters(offset).then(onCharListLoaded).catch(onError);
-    };
-
-    const onCharListLoading = () => {
         setNewItemLoading(true);
+        getAllCharacters(offset).then(onCharListLoaded);
     };
 
     const onCharListLoaded = newData => {
@@ -39,15 +33,9 @@ const CharList = props => {
         );
 
         setData([...data, ...filteredNewData]);
-        setLoading(false);
         setNewItemLoading(false);
         setOffset(offset => offset + 3);
         setCharEnded(ended);
-    };
-
-    const onError = () => {
-        setError(true);
-        setLoading(false);
     };
 
     let itemRefs = useRef([]);
@@ -90,13 +78,12 @@ const CharList = props => {
 
     const errorMessage = error ? <ErrorMessage /> : null;
     const spinner = loading ? <Spinner /> : null;
-    const content = !(loading || error) ? items : null;
 
     return (
         <div className="char_list">
             {errorMessage}
             {spinner}
-            {content}
+            {items}
             <button
                 className="button button__main button__long"
                 disabled={newItemLoading}

@@ -1,33 +1,25 @@
-class MarvelService {
-    _apiBase = 'https://marvel-server-zeta.vercel.app/';
-    _apiKey = 'apikey=d4eecb0c66dedbfae4eab45d312fc1df';
-    _baseOffset = 0;
+import { useHttp } from '../hooks/http.hook';
 
-    getRessource = async url => {
-        let res = await fetch(url);
+const useMarvelService = () => {
+    const { loading, request, error, clearError } = useHttp();
 
-        if (!res.ok) {
-            throw new Error(`Could not fetch ${url}, status: ${res.status}`);
-        }
+    const _apiBase = 'https://marvel-server-zeta.vercel.app/',
+        _apiKey = 'apikey=d4eecb0c66dedbfae4eab45d312fc1df',
+        _baseOffset = 0;
 
-        return await res.json();
+    const getAllCharacters = async (offset = _baseOffset) => {
+        const res = await request(`${_apiBase}characters?limit=9&offset=${offset}&${_apiKey}`);
+        return res.data.results.map(_transformCharacter);
     };
 
-    getAllCharacters = async (offset = this._baseOffset) => {
-        const res = await this.getRessource(
-            `${this._apiBase}characters?limit=9&offset=${offset}&${this._apiKey}`
+    const getCharacter = async id => {
+        const res = await request(`${_apiBase}characters?&${_apiKey}`).then(res =>
+            res.data.results.filter(item => item.id === id)
         );
-        return res.data.results.map(this._transformCharacter);
+        return _transformCharacter(res[0]);
     };
 
-    getCharacter = async id => {
-        const res = await this.getRessource(`${this._apiBase}characters?&${this._apiKey}`).then(
-            res => res.data.results.filter(item => item.id === id)
-        );
-        return this._transformCharacter(res[0]);
-    };
-
-    _transformCharacter = char => {
+    const _transformCharacter = char => {
         let thumbnail;
         if (
             char.thumbnail.path ===
@@ -49,6 +41,14 @@ class MarvelService {
             wiki: char.urls[1].url,
         };
     };
-}
 
-export default MarvelService;
+    return {
+        loading,
+        error,
+        getAllCharacters,
+        getCharacter,
+        clearError,
+    };
+};
+
+export default useMarvelService;
