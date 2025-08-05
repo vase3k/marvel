@@ -1,8 +1,10 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, createRef } from 'react';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import useMarvelService from '../../services/MarvelServices';
 import Spinner from '../spinner/Spinner';
 import ErrorMessage from '../errorMessage/ErrorMessage';
+
 import './charList.scss';
 
 const CharList = props => {
@@ -38,40 +40,56 @@ const CharList = props => {
         setCharEnded(ended);
     };
 
-    let itemRefs = useRef([]);
+    const focusOnItem = ref => {
+        ref.current.classList.add('char__item_selected');
+        ref.current.focus();
+    };
 
-    const focusOnItem = id => {
-        itemRefs.current.forEach(item => item.classList.remove('char__item_selected'));
-        itemRefs.current[id].classList.add('char__item_selected');
-        itemRefs.current[id].focus();
+    const blurOnItem = ref => {
+        ref.current.classList.remove('char__item_selected');
     };
 
     const renderItems = arr => {
-        const items = arr.map((item, i) => {
+        const items = arr.map(item => {
+            const itemRef = createRef(null);
+
             return (
-                <li
-                    className="char__item"
-                    tabIndex={0}
-                    ref={elem => (itemRefs.current[i] = elem)}
+                <CSSTransition
                     key={item.id}
-                    onClick={() => {
-                        props.onCharSelected(item.id);
-                        focusOnItem(i);
-                    }}
-                    onKeyDown={e => {
-                        if (e.key === ' ' || e.key === 'Enter') {
-                            props.onCharSelected(item.id);
-                            focusOnItem(i);
-                        }
-                    }}
+                    in={true}
+                    timeout={500}
+                    classNames="char__item"
+                    nodeRef={itemRef}
                 >
-                    <img src={item.thumbnail} alt={item.name} />
-                    <div className="char__name">{item.name}</div>
-                </li>
+                    <li
+                        className="char__item"
+                        key={item.id}
+                        tabIndex={0}
+                        ref={itemRef}
+                        onClick={() => {
+                            props.onCharSelected(item.id);
+                            focusOnItem(itemRef);
+                        }}
+                        onBlur={() => blurOnItem(itemRef)}
+                        onKeyDown={e => {
+                            if (e.key === ' ' || e.key === 'Enter') {
+                                props.onCharSelected(item.id);
+                                focusOnItem(itemRef);
+                            }
+                        }}
+                    >
+                        <img src={item.thumbnail} alt={item.name} />
+                        <div className="char__name">{item.name}</div>
+                    </li>
+                </CSSTransition>
             );
         });
 
-        return <ul className="char__grid">{items}</ul>;
+        return (
+            <ul className="char__grid">
+                <TransitionGroup component={null}>{items}</TransitionGroup>
+            </ul>
+        );
     };
 
     const items = renderItems(data);
@@ -87,7 +105,7 @@ const CharList = props => {
             <button
                 className="button button__main button__long"
                 disabled={newItemLoading}
-                style={{ display: charEnded ? 'none' : '' }}
+                style={{ display: charEnded ? 'none' : 'block' }}
                 onClick={() => onRequest(offset)}
             >
                 <div className="inner">load more</div>
