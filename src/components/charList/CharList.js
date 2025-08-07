@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, createRef } from 'react';
+import { useState, useEffect, createRef } from 'react';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import useMarvelService from '../../services/MarvelServices';
