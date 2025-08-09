@@ -1,3 +1,4 @@
+import { Helmet } from 'react-helmet';
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
@@ -44,10 +45,13 @@ const CharPage = () => {
 };
 
 const View = ({ char }) => {
-    console.log(char);
     const { name, description, thumbnail } = char;
     return (
         <div className="char-page">
+            <Helmet>
+                <meta name="description" content={`${name} char page`} />
+                <title>{name}</title>
+            </Helmet>
             <img className="char-page__img" src={thumbnail} alt={name} />
             <div>
                 <h2 className="char-page__name">{name}</h2>
