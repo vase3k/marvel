@@ -6,29 +6,39 @@ import useMarvelService from '../../services/MarvelServices';
 
 import './charSearch.scss';
 
+const setContent = (process, data) => {
+    switch (process) {
+        case 'waiting': {
+            return;
+        }
+        case 'loading': {
+            return;
+        }
+        case 'confirmed': {
+            return <LinkMessage char={data} />;
+        }
+        case 'error': {
+            return <NoNameError />;
+        }
+        default:
+            throw new Error('Unexpected process state');
+    }
+};
+
 const CharSearch = () => {
     const [char, setChar] = useState(null);
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState(false);
-
-    const { getCharacterByName } = useMarvelService();
+    const { getCharacterByName, process, setProcess } = useMarvelService();
 
     const onCharLoaded = char => {
         setChar(char);
-        setLoading(false);
-        setError(false);
     };
 
     const updateChar = name => {
-        setLoading(true);
-        setError(false);
-
+        setProcess('loading');
         getCharacterByName(name)
             .then(onCharLoaded)
-            .catch(() => {
-                setLoading(false);
-                setError(true);
-            });
+            .then(() => setProcess('confirmed'))
+            .catch(() => setProcess('error'));
     };
 
     return (
@@ -49,11 +59,14 @@ const CharSearch = () => {
                     name="name"
                     placeholder="Enter name"
                 />
-                <button type="submit" className="button button__main" disabled={loading}>
-                    <div className="inner">{loading ? 'loading...' : 'Find'}</div>
+                <button
+                    type="submit"
+                    className="button button__main"
+                    disabled={process === 'loading'}
+                >
+                    <div className="inner">{process === 'loading' ? 'loading...' : 'Find'}</div>
                 </button>
-                {error && <NoNameError />}
-                {char && <LinkMessage char={char} />}
+                {setContent(process, char)}
                 <ErrorMessage className="char__search-error" name="name" component="div" />
             </Form>
         </Formik>

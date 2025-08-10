@@ -5,13 +5,32 @@ import useMarvelService from '../../services/MarvelServices';
 import ErrorMessage from '../errorMessage/ErrorMessage';
 import Spinner from '../spinner/Spinner';
 
+const setContent = (process, Component, newItemLoading) => {
+    switch (process) {
+        case 'waiting': {
+            return <Spinner />;
+        }
+        case 'loading': {
+            return newItemLoading ? <Component /> : <Spinner />;
+        }
+        case 'confirmed': {
+            return <Component />;
+        }
+        case 'error': {
+            return <ErrorMessage />;
+        }
+        default:
+            throw new Error('Unexpected process state');
+    }
+};
+
 const ComicsList = () => {
     const [comics, setComics] = useState([]),
         [newComicLoading, setNewComicLoading] = useState(false),
         [offset, setOffset] = useState(-4),
         [comicEnded, setComicEnded] = useState(false);
 
-    const { getAllComics, error, loading } = useMarvelService();
+    const { getAllComics, process, setProcess } = useMarvelService();
 
     useEffect(() => {
         onRequest();
@@ -19,7 +38,9 @@ const ComicsList = () => {
 
     const onRequest = offset => {
         setNewComicLoading(true);
-        getAllComics(offset).then(onComicListLoaded);
+        getAllComics(offset)
+            .then(onComicListLoaded)
+            .then(() => setProcess('confirmed'));
     };
 
     const onComicListLoaded = newData => {
@@ -57,16 +78,9 @@ const ComicsList = () => {
         return <ul className="comics__grid">{items}</ul>;
     };
 
-    const items = renderItems(comics);
-
-    const errorMessage = error ? <ErrorMessage /> : null;
-    const spinner = loading ? <Spinner /> : null;
-
     return (
         <div className="comics__list">
-            {errorMessage}
-            {spinner}
-            {items}
+            {setContent(process, () => renderItems(comics), newComicLoading)}
             <button
                 className="button button__main button__long"
                 disabled={newComicLoading}

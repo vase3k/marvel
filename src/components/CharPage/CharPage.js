@@ -3,15 +3,14 @@ import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 
 import useMarvelService from '../../services/MarvelServices';
-import Spinner from '../spinner/Spinner';
-import ErrorMessage from '../errorMessage/ErrorMessage';
+import setContent from '../../utils/setContent';
 import AppBanner from '../appBanner/AppBanner';
 import './charPage.scss';
 
 const CharPage = () => {
-    const { charName } = useParams();
-    const [char, setChar] = useState(null);
-    const { loading, error, getCharacterByName, clearError } = useMarvelService();
+    const { charName } = useParams(),
+        [char, setChar] = useState(null),
+        { getCharacterByName, clearError, process, setProcess } = useMarvelService();
 
     useEffect(() => {
         updateChar();
@@ -23,29 +22,25 @@ const CharPage = () => {
         }
 
         clearError();
-        getCharacterByName(charName).then(onCharLoaded);
+        getCharacterByName(charName)
+            .then(onCharLoaded)
+            .then(() => setProcess('confirmed'));
     };
 
     const onCharLoaded = char => {
         setChar(char);
     };
 
-    const errorMessage = error ? <ErrorMessage /> : null;
-    const spinner = loading ? <Spinner /> : null;
-    const content = !(loading || error || !char) ? <View char={char} /> : null;
-
     return (
         <>
             <AppBanner />
-            {errorMessage}
-            {spinner}
-            {content}
+            {setContent(process, View, char)}
         </>
     );
 };
 
-const View = ({ char }) => {
-    const { name, description, thumbnail } = char;
+const View = ({ data }) => {
+    const { name, description, thumbnail } = data;
     return (
         <div className="char-page">
             <Helmet>
