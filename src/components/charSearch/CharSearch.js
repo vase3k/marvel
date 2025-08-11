@@ -50,8 +50,9 @@ const CharSearch = () => {
                 name: Yup.string().required('This field is required'),
             })}
             onSubmit={values => updateChar(values.name)}
+            validateOnChange={true}
         >
-            <Form className="char__search">
+            <Form className="char__search" onChange={() => setProcess('waiting')}>
                 <h2 className="char__search-name">Or find a character by name:</h2>
                 <Field
                     className="char__search-field"
