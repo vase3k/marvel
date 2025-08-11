@@ -1,5 +1,4 @@
 import { useState, useEffect, createRef, useMemo } from 'react';
-import { CSSTransition, TransitionGroup } from 'react-transition-group';
 
 import useMarvelService from '../../services/MarvelServices';
 import Spinner from '../spinner/Spinner';
@@ -36,6 +35,7 @@ const CharList = props => {
 
     useEffect(() => {
         onRequest();
+        //eslint-disable-next-line
     }, []);
 
     const onRequest = offset => {
@@ -75,46 +75,34 @@ const CharList = props => {
             const itemRef = createRef(null);
 
             return (
-                <CSSTransition
+                <li
+                    className="char__item"
                     key={item.id}
-                    in={true}
-                    timeout={500}
-                    classNames="char__item"
-                    nodeRef={itemRef}
-                >
-                    <li
-                        className="char__item"
-                        key={item.id}
-                        tabIndex={0}
-                        ref={itemRef}
-                        onClick={() => {
+                    tabIndex={0}
+                    ref={itemRef}
+                    onClick={() => {
+                        props.onCharSelected(item.id);
+                        focusOnItem(itemRef);
+                    }}
+                    onBlur={() => blurOnItem(itemRef)}
+                    onKeyDown={e => {
+                        if (e.key === ' ' || e.key === 'Enter') {
                             props.onCharSelected(item.id);
                             focusOnItem(itemRef);
-                        }}
-                        onBlur={() => blurOnItem(itemRef)}
-                        onKeyDown={e => {
-                            if (e.key === ' ' || e.key === 'Enter') {
-                                props.onCharSelected(item.id);
-                                focusOnItem(itemRef);
-                            }
-                        }}
-                    >
-                        <img src={item.thumbnail} alt={item.name} />
-                        <div className="char__name">{item.name}</div>
-                    </li>
-                </CSSTransition>
+                        }
+                    }}
+                >
+                    <img src={item.thumbnail} alt={item.name} />
+                    <div className="char__name">{item.name}</div>
+                </li>
             );
         });
 
-        return (
-            <ul className="char__grid">
-                <TransitionGroup component={null}>{items}</TransitionGroup>
-            </ul>
-        );
+        return <ul className="char__grid">{items}</ul>;
     };
-
     const elements = useMemo(() => {
         return setContent(process, () => renderItems(data), newItemLoading);
+        //eslint-disable-next-line
     }, [process]);
 
     return (

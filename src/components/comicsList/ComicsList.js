@@ -34,6 +34,7 @@ const ComicsList = () => {
 
     useEffect(() => {
         onRequest();
+        //eslint-disable-next-line
     }, []);
 
     const onRequest = offset => {
